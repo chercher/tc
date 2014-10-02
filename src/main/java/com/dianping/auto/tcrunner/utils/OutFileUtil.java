@@ -95,7 +95,7 @@ public class OutFileUtil {
             reader = new BufferedReader(new FileReader(file));
             String line;
             while((line = reader.readLine()) != null) {
-                content += line + "\n";
+                content += line;
             }
         } catch (IOException e) {
             System.err.println(e.getMessage());
@@ -113,6 +113,35 @@ public class OutFileUtil {
         }
         return content;
     }
+
+    public static String outfileToConcatString(String file) throws IOException {
+        StringBuffer content = new StringBuffer();
+        BufferedReader reader = null;
+        try {
+            reader = new BufferedReader(new FileReader(file));
+            String line;
+            while((line = reader.readLine()) != null) {
+                content += line + ",";
+            }
+            int last = content.length;
+            content.delete(last, last);
+        } catch (IOException e) {
+            System.err.println(e.getMessage());
+            logger.error(e.getMessage());
+        } finally {
+            if (reader != null) {
+                try {
+                    reader.close();
+                } catch (IOException e) {
+                    System.err.println(e.getMessage());
+                    logger.error(e.getMessage());
+                }
+
+            }
+        }
+        return content.toString();
+    }
+
 
     public static void main(String[] args) throws IOException {
 
