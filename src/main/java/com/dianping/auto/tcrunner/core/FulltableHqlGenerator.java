@@ -83,6 +83,6 @@ public class FulltableHqlGenerator {
         }
         int last = bf.length;
         bf.delete(last, last);
-        bf.append(")) in " + concatHash);
+        bf.append(")) in (" + concatHash + ")");
    }
 }
