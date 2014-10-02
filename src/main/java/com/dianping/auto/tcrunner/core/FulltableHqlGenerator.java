@@ -36,7 +36,7 @@ public class FulltableHqlGenerator {
         return allColumns;    
     }
 
-    public String genSumCountHql(HiveConf conf,String tableName) throws SQLException, ClassNotFoundException {
+    public static String genSumCountHql(HiveConf conf,String tableName) throws SQLException, ClassNotFoundException {
         ResultSet rs = getResultSet(conf, tableName);
         List<String> sumColumns = new ArrayList<String>();
         boolean isSumType;
@@ -62,7 +62,7 @@ public class FulltableHqlGenerator {
         return bf.toString();
     }
 
-    public String genOnlineHashHql(HiveConf conf,String tableName) throws SQLException, ClassNotFoundException {
+    public static String genOnlineHashHql(HiveConf conf,String tableName) throws SQLException, ClassNotFoundException {
         List<String> allColumns = getAllColumns(conf, tableName);
         StringBuffer bf = new StringBuffer();
         bf.append("select hash64(concat_null(");
@@ -75,7 +75,7 @@ public class FulltableHqlGenerator {
         return bf.toString();
     }
 
-   public String genTestHashCountHql(HiveConf conf,String tableName, String concatHash) throws SQLException, ClassNotFoundException {
+   public static String genTestHashCountHql(HiveConf conf,String tableName, String concatHash) throws SQLException, ClassNotFoundException {
         List<String> allColumns = getAllColumns(conf, tableName);
         StringBuffer bf = new StringBuffer();
         bf.append("select count(*) from " + tableName + " where hash64(concat_null(");
