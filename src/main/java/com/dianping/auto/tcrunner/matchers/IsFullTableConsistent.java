@@ -29,22 +29,32 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.FutureTask;
 
 public class IsFullTableConsistent<T> extends DiagnosingMatcher<T> {
-    private CompareHqlGenerator generator;
-    private CountDownLatch countDownLatch;
-    private HqlExecutor testHqlExecutor;
-    private HqlExecutor onlineHqlExecutor;
-    private FutureTask<HashMap<Integer, String>> testFutureTask;
-    private FutureTask<HashMap<Integer, String>> onlineFutureTask;
+    private CountDownLatch countDownLatch1;
+    private CountDownLatch countDownLatch2;
+    private CountDownLatch countDownLatch3;
+    private HqlExecutor testHqlExecutor1;
+    private HqlExecutor testHqlExecutor2;
+    private HqlExecutor onlineHqlExecutor1;
+    private HqlExecutor onlineHqlExecutor2;
+    private FutureTask<HashMap<Integer, String>> testFutureTask1;
+    private FutureTask<HashMap<Integer, String>> testFutureTask2;
+    private FutureTask<HashMap<Integer, String>> onlineFutureTask1;
+    private FutureTask<HashMap<Integer, String>> onlineFutureTask2;
     private ExecutorService threadPool;
     private HiveConf conf =  new HiveConf(Hive.class);
 
     public IsFullTableConsistent() {
-        generator = new CompareHqlGenerator();
-        countDownLatch = new CountDownLatch(2);
-        testHqlExecutor = new HqlExecutor(HiveEnvEnum.TEST, countDownLatch);
-        testFutureTask = new FutureTask<HashMap<Integer, String>>(testHqlExecutor);
-        onlineHqlExecutor = new HqlExecutor(HiveEnvEnum.ONLINE, countDownLatch);
-        onlineFutureTask = new FutureTask<HashMap<Integer, String>>(onlineHqlExecutor);
+        countDownLatch1 = new CountDownLatch(2);
+        countDownLatch2 = new CountDownLatch(1);
+        countDownLatch3 = new CountDownLatch(1);
+        testHqlExecutor1 = new HqlExecutor(HiveEnvEnum.TEST, countDownLatch1);
+        testFutureTask1 = new FutureTask<HashMap<Integer, String>>(testHqlExecutor1);
+        testHqlExecutor2 = new HqlExecutor(HiveEnvEnum.TEST, countDownLatch2);
+        testFutureTask2 = new FutureTask<HashMap<Integer, String>>(testHqlExecutor2);
+        onlineHqlExecutor1 = new HqlExecutor(HiveEnvEnum.ONLINE, countDownLatch1);
+        onlineFutureTask1 = new FutureTask<HashMap<Integer, String>>(onlineHqlExecutor1);
+        onlineHqlExecutor2 = new HqlExecutor(HiveEnvEnum.ONLINE, countDownLatch2);
+        onlineFutureTask2 = new FutureTask<HashMap<Integer, String>>(onlineHqlExecutor2);
         threadPool = Executors.newFixedThreadPool(2);
     }
 
@@ -52,14 +62,14 @@ public class IsFullTableConsistent<T> extends DiagnosingMatcher<T> {
     public boolean matches(Object tableName, Description mismatch) {
         String hql = null;
         try {
-            hql = generator.generate(conf,(String) tableName);
+            hql = FulltableHqlGenerator.genSumCountHql(conf,(String) tableName);
         } catch (SQLException e) {
             e.printStackTrace();
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
-        testHqlExecutor.setHql(hql);
-        onlineHqlExecutor.setHql(hql);
+        testHqlExecutor1.setHql(hql);
+        onlineHqlExecutor1.setHql(hql);
 
         Boolean match = false;
         String testContent = "";
@@ -67,18 +77,20 @@ public class IsFullTableConsistent<T> extends DiagnosingMatcher<T> {
 
         if (Description.NONE == mismatch) {
             try {
-                threadPool.execute(testFutureTask);
-                threadPool.execute(onlineFutureTask);
-                countDownLatch.await();
-                if (("0" == testFutureTask.get().get(0)) && ("0" == onlineFutureTask.get().get(0))) {
-                    testContent = OutFileUtil.outfileToString("test.out" + testFutureTask.get().get(1));
-                    onlineContent = OutFileUtil.outfileToString("online.out" + onlineFutureTask.get().get(1));
+                threadPool.execute(testFutureTask1);
+                threadPool.execute(onlineFutureTask1);
+                countDownLatch1.await();
+                if (("0" == testFutureTask1.get().get(0)) && ("0" == onlineFutureTask1.get().get(0))) {
+                    testContent = OutFileUtil.outfileToString("test.out" + testFutureTask1.get().get(1));
+                    onlineContent = OutFileUtil.outfileToString("online.out" + onlineFutureTask1.get().get(1));
                     match = StringUtils.equals(testContent, onlineContent);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
+
+        
 
         if (!match) {
             mismatch.appendText("test is ").appendValue(testContent).appendText(" while online is ").appendValue(onlineContent);
