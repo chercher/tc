@@ -10,7 +10,7 @@ import java.util.List;
 /**
  * Created by shanshan.jin on 14-9-17.
  */
-public class   {
+public class FulltableHqlGenerator {
     private ResultSet getResultSet(HiveConf conf,String tableName) throws ClassNotFoundException, SQLException {
         
         String mysqldb = conf.get("javax.jdo.option.ConnectionURL");
