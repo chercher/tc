@@ -72,6 +72,7 @@ public class FulltableHqlGenerator {
         int last = bf.length;
         bf.delete(last, last);
         bf.append(")) from " + tableName + " order by rand() limit 10;");  
+        return bf.toString();
     }
 
    public String genTestHashCountHql(HiveConf conf,String tableName, String concatHash) throws SQLException, ClassNotFoundException {
@@ -84,5 +85,6 @@ public class FulltableHqlGenerator {
         int last = bf.length;
         bf.delete(last, last);
         bf.append(")) in (" + concatHash + ")");
+        return bf.toString();
    }
 }
